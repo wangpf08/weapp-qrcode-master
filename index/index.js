@@ -2,6 +2,7 @@
 //获取应用实例  
 var app = getApp()
 var config = require('../lib/config.js')
+//var Blob = require('../lib/blob.js')
 
 Page({
   data: {
@@ -12,6 +13,9 @@ Page({
     wxawidth: '',
     qrpath: '',
     qrwidth: '',
+    ptpath: '',
+    ptwidth: '',
+    ptparam: '',
     winWidth: 0,
     winHeight: 0,
     /**
@@ -166,10 +170,10 @@ Page({
    */
   generateQrCode: function() {
     var that = this
-    if (this.data.qrpath.length < 20) {
-      that.showTankuang('请输入正确的1path')
+    /*if (this.data.qrpath.length < 10) {
+      that.showTankuang('请输入正确的path')
       return
-    }
+    }*/
     if (this.data.qrwidth == '') {
       that.setData({
         qrwidth: 430
@@ -232,36 +236,38 @@ Page({
   getCode: function(e) {
     var that = this
     var access_token = that.data.access_token
+    //二维码
     if(e == 'qr') {
       wx.request({
         url: 'https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token=' + access_token,
         data: { 
-          path: "pages/webs/webs?backurl=" + that.data.qrpath, 
+          path: 'pages/index/index',//that.data.qrpath,//"pages/webs/webs?backurl=" + that.data.qrpath, 
           width: that.data.qrwidth
         },
         method: 'POST', // OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT
         responseType: 'arraybuffer',
         success: function (data) {
           if (data) {
-            console.log(data)
-            if (data.data != undefined) {
-              let blob = new Blob([data.data], { type: 'image/jpeg' })
-              that.getCanvasImage(URL.createObjectURL(blob))
-              that.setData({
-                url: URL.createObjectURL(blob),
-                urls: [URL.createObjectURL(blob)]
-              })
-            }
+            //let blob = new Blob([data.data], { type: 'image/jpeg' })
+
+            var url = wx.arrayBufferToBase64(data.data)
+            that.getCanvasImage("data:image/JFIF;base64," + url)
+            //that.getCanvasImage(URL.createObjectURL(blob))
+            that.setData({
+              url: "data:image/JFIF;base64," + url,
+              urls: ["data:image/JFIF;base64," + url]
+            })
           }
         }
       })
     }
+    //小程序码
     if(e == 'wxa') {
       
       wx.request({
         url: 'https://api.weixin.qq.com/wxa/getwxacode?access_token=' + access_token,
         data: {
-          path: "pages/webs/webs?backurl=" + that.data.wxapath,
+          path: that.data.wxapath,//"pages/webs/webs?backurl=" + that.data.wxapath,
           width: that.data.wxawidth
         },
         header: {
@@ -274,25 +280,28 @@ Page({
           if (data) {
             console.log(data)
             if (data.data != undefined) {
-              let blob = new Blob([data.data], { type: 'image/jpeg' })
+              //let blob = new Blob([data.data], { type: 'image/jpeg' })
               
-              that.getCanvasImage(URL.createObjectURL(blob))
+              var url = wx.arrayBufferToBase64(data.data)
+              that.getCanvasImage("data:image/JFIF;base64,"+url)
+              //that.getCanvasImage(URL.createObjectURL(blob))
               that.setData({
-                url: URL.createObjectURL(blob),
-                urls: [URL.createObjectURL(blob)]
+                url: "data:image/JFIF;base64,"+url,
+                urls: ["data:image/JFIF;base64," + url]
               })
             }
           }
         }
       })
     }
+    //无限制小程序码
     if (e == 'pt') {
-console.log(e)
       wx.request({
         url: 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' + access_token,
         data: {
-          width: 430,
-          scene: 'hello'
+          width: that.data.wxawidth,
+          path: that.data.ptpath,
+          scene: that.data.ptparam
         },
         header: {
           'content-type': 'text/plain;charset=UTF-8', // 默认值
@@ -301,17 +310,15 @@ console.log(e)
         method: 'POST', // OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT
         responseType: 'arraybuffer',
         success: function (data) {
-          if (data) {
-            console.log(data)
-            if (data.data != undefined) {
-              let blob = new Blob([data.data], { type: 'image/jpeg' })
-              that.getCanvasImage(URL.createObjectURL(blob))
-              that.setData({
-                url: URL.createObjectURL(blob),
-                urls: [URL.createObjectURL(blob)]
-              })
-            }
-          }
+            console.log(data.data)
+            //let blob = new Blob([data.data], { type: 'image/jpeg' })
+            var url = wx.arrayBufferToBase64(data.data)
+            that.getCanvasImage("data:image/JFIF;base64," + url)
+            //that.getCanvasImage(URL.createObjectURL(blob))
+            that.setData({
+              url: "data:image/JFIF;base64," + url,
+              urls: ["data:image/JFIF;base64," + url]
+            })
         }
       })
     }
